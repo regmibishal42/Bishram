@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bishram</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, 'SF Pro Rounded', system-ui, sans-serif;
+      background: transparent;
+      overflow: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .glass {
+      background: rgba(15, 23, 42, 0.35);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .glass-card {
+      background: rgba(15, 23, 42, 0.5);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .glass-card:hover {
+      background: rgba(15, 23, 42, 0.65);
+      border-color: rgba(255, 179, 153, 0.15);
+      transform: translateY(-2px);
+    }
+
+    .breathing-ring {
+      animation: breathe 8s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+      transform-origin: center;
+    }
+
+    @keyframes breathe {
+      0%, 100% { transform: scale(0.75); opacity: 0.5; }
+      50% { transform: scale(1.15); opacity: 1; }
+    }
+
+    .breathing-ring-outer {
+      animation: breathe-outer 8s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+      transform-origin: center;
+    }
+
+    @keyframes breathe-outer {
+      0%, 100% { transform: scale(0.85); opacity: 0.2; }
+      50% { transform: scale(1.3); opacity: 0.4; }
+    }
+
+    .fade-in {
+      animation: fadeIn 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .stagger-1 { animation-delay: 0.2s; }
+    .stagger-2 { animation-delay: 0.5s; }
+    .stagger-3 { animation-delay: 0.8s; }
+
+    .glow-peach {
+      box-shadow: 0 0 60px rgba(255, 179, 153, 0.08);
+    }
+
+    .glow-peach-text {
+      text-shadow: 0 0 40px rgba(255, 179, 153, 0.3);
+    }
+
+    .stretch-svg {
+      width: 64px;
+      height: 64px;
+    }
+
+    .timer-text {
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.05em;
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(5, 7, 11, 0.6);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .settings-panel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 360px;
+      height: 100vh;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(32px);
+      -webkit-backdrop-filter: blur(32px);
+      border-left: 1px solid rgba(255, 255, 255, 0.05);
+      transform: translateX(100%);
+      transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 10000;
+      padding: 2rem;
+    }
+
+    .settings-panel.open {
+      transform: translateX(0);
+    }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255, 179, 153, 0.2); border-radius: 2px; }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 179, 153, 0.15);
+      border-radius: 2px;
+      outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      background: #FFB399;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    .btn-peach {
+      background: rgba(255, 179, 153, 0.12);
+      color: #FFB399;
+      border: 1px solid rgba(255, 179, 153, 0.15);
+      backdrop-filter: blur(8px);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .btn-peach:hover {
+      background: rgba(255, 179, 153, 0.2);
+      border-color: rgba(255, 179, 153, 0.3);
+      box-shadow: 0 0 30px rgba(255, 179, 153, 0.08);
+    }
+
+    .btn-peach:active {
+      transform: scale(0.96);
+    }
+  </style>
+</head>
+<body>
+
+<div id="overlay" class="overlay hidden">
+  <div class="absolute inset-0 overflow-hidden pointer-events-none">
+    <div class="absolute top-1/4 left-1/3 w-96 h-96 bg-peach/5 rounded-full blur-[120px]"></div>
+    <div class="absolute bottom-1/4 right-1/3 w-80 h-80 bg-lavender/5 rounded-full blur-[100px]"></div>
+  </div>
+
+  <div class="relative z-10 flex flex-col items-center justify-center w-full h-full px-6">
+    <div class="relative flex items-center justify-center mb-8">
+      <svg class="breathing-ring-outer absolute" width="280" height="280" viewBox="0 0 280 280">
+        <circle cx="140" cy="140" r="100" fill="none" stroke="rgba(255,179,153,0.08)" stroke-width="1" />
+        <circle cx="140" cy="140" r="120" fill="none" stroke="rgba(209,196,233,0.05)" stroke-width="0.5" stroke-dasharray="4 8" />
+      </svg>
+      <svg class="breathing-ring" width="200" height="200" viewBox="0 0 200 200">
+        <defs>
+          <radialGradient id="ringGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="rgba(255,179,153,0.15)" />
+            <stop offset="100%" stop-color="rgba(255,179,153,0)" />
+          </radialGradient>
+          <filter id="glow">
+            <feGaussianBlur stdDeviation="6" result="blur" />
+            <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+          </filter>
+        </defs>
+        <circle cx="100" cy="100" r="90" fill="url(#ringGlow)" />
+        <circle cx="100" cy="100" r="50" fill="none" stroke="#FFB399" stroke-width="1.5" filter="url(#glow)" opacity="0.8" />
+        <circle cx="100" cy="100" r="40" fill="none" stroke="rgba(255,179,153,0.3)" stroke-width="0.5" />
+        <circle cx="100" cy="100" r="60" fill="none" stroke="rgba(255,179,153,0.15)" stroke-width="0.5" stroke-dasharray="2 6" />
+      </svg>
+    </div>
+
+    <div id="phase-label" class="text-peach/60 text-sm font-medium tracking-[0.2em] uppercase mb-3 fade-in">
+      Break Time
+    </div>
+
+    <div id="timer" class="text-white text-7xl font-light tracking-wider timer-text glow-peach-text mb-6 fade-in stagger-1">
+      05:00
+    </div>
+
+    <div class="flex gap-4 mb-12 fade-in stagger-2">
+      <button id="settings-btn" class="btn-peach px-5 py-2 rounded-full text-sm font-medium">
+        Settings
+      </button>
+      <button id="skip-btn" class="btn-peach px-5 py-2 rounded-full text-sm font-medium">
+        Skip Break
+      </button>
+    </div>
+
+    <div id="stretch-container" class="flex gap-4 fade-in stagger-3">
+      <div class="glass-card rounded-2xl p-5 flex flex-col items-center w-48">
+        <svg class="stretch-svg mb-3" viewBox="0 0 64 64" fill="none" stroke="#FFB399" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="32" cy="16" r="8" />
+          <path d="M32 24v16" />
+          <path d="M24 30l8 4 8-4" />
+          <path d="M20 44l8-4" />
+          <path d="M44 44l-8-4" />
+          <path d="M24 50c4 2 12 2 16 0" />
+          <path d="M16 14a12 12 0 0 0-4 8" stroke-dasharray="2 2" opacity="0.4" />
+        </svg>
+        <span class="text-white/80 text-sm font-medium">Neck Roll</span>
+        <span class="text-white/40 text-xs mt-1">Gently roll your neck</span>
+      </div>
+
+      <div class="glass-card rounded-2xl p-5 flex flex-col items-center w-48">
+        <svg class="stretch-svg mb-3" viewBox="0 0 64 64" fill="none" stroke="#D1C4E9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 24c8-4 24-4 32 0" />
+          <path d="M16 28c8-4 24-4 32 0" />
+          <path d="M12 32l4-4 4 4" />
+          <path d="M52 32l-4-4-4 4" />
+          <circle cx="20" cy="20" r="2" fill="#D1C4E9" opacity="0.3" />
+          <circle cx="44" cy="20" r="2" fill="#D1C4E9" opacity="0.3" />
+          <path d="M22 22l-6 6" stroke-dasharray="2 2" opacity="0.3" />
+          <path d="M42 22l6 6" stroke-dasharray="2 2" opacity="0.3" />
+        </svg>
+        <span class="text-white/80 text-sm font-medium">Shoulder Roll</span>
+        <span class="text-white/40 text-xs mt-1">Release shoulder tension</span>
+      </div>
+
+      <div class="glass-card rounded-2xl p-5 flex flex-col items-center w-48">
+        <svg class="stretch-svg mb-3" viewBox="0 0 64 64" fill="none" stroke="#C8E6C9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 40l24-16 24 16" />
+          <path d="M32 24v16" />
+          <path d="M16 32l16 8 16-8" />
+          <path d="M40 20l8-4 8 8" />
+          <path d="M20 48l-4 8" opacity="0.5" />
+          <path d="M44 48l4 8" opacity="0.5" />
+          <circle cx="48" cy="14" r="3" fill="#C8E6C9" opacity="0.2" />
+          <path d="M44 10l8 8" stroke-dasharray="2 2" opacity="0.3" />
+        </svg>
+        <span class="text-white/80 text-sm font-medium">Wrist Stretch</span>
+        <span class="text-white/40 text-xs mt-1">Ease your wrists</span>
+      </div>
+    </div>
+
+    <div id="quote" class="mt-12 text-center fade-in stagger-3" style="animation-delay: 1.1s;">
+      <p class="text-white/40 text-sm italic max-w-md leading-relaxed">
+        "Almost everything will work again if you unplug it for a few minutes, including you."
+      </p>
+      <p class="text-white/20 text-xs mt-2">— Anne Lamott</p>
+    </div>
+  </div>
+</div>
+
+<div id="settings" class="settings-panel">
+  <div class="flex items-center justify-between mb-8">
+    <h2 class="text-white text-lg font-semibold">Settings</h2>
+    <button id="close-settings" class="text-white/40 hover:text-white/70 transition-colors">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M5 5l10 10M15 5l-10 10" />
+      </svg>
+    </button>
+  </div>
+
+  <div class="mb-6">
+    <label class="text-white/60 text-sm font-medium block mb-2">Focus Duration</label>
+    <div class="flex items-center gap-4">
+      <input type="range" id="work-slider" min="1" max="120" value="25" class="flex-1" />
+      <span id="work-label" class="text-white text-sm w-16 text-right">25 min</span>
+    </div>
+  </div>
+
+  <div class="mb-6">
+    <label class="text-white/60 text-sm font-medium block mb-2">Break Duration</label>
+    <div class="flex items-center gap-4">
+      <input type="range" id="break-slider" min="1" max="30" value="5" class="flex-1" />
+      <span id="break-label" class="text-white text-sm w-16 text-right">5 min</span>
+    </div>
+  </div>
+
+  <div class="mb-8 flex items-center justify-between">
+    <label class="text-white/60 text-sm font-medium">Strict Mode (no skip)</label>
+    <button id="strict-toggle" class="w-11 h-6 rounded-full transition-colors duration-300 relative" style="background: rgba(255,255,255,0.1);">
+      <span id="strict-knob" class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white/40 transition-all duration-300"></span>
+    </button>
+  </div>
+
+  <div class="mb-8">
+    <label class="text-white/60 text-sm font-medium block mb-2">Cycles Completed</label>
+    <p id="cycle-count" class="text-white text-2xl font-light">0</p>
+  </div>
+
+  <button id="reset-btn" class="w-full btn-peach py-3 rounded-xl text-sm font-medium">
+    Reset Timer
+  </button>
+</div>
+
+<script>
+const TAURI = window.__TAURI__;
+const invoke = TAURI?.invoke || (() => Promise.reject('Tauri not available'));
+const listen = TAURI?.event?.listen || (() => {});
+
+const overlay = document.getElementById('overlay');
+const timerEl = document.getElementById('timer');
+const phaseLabel = document.getElementById('phase-label');
+const skipBtn = document.getElementById('skip-btn');
+const settingsBtn = document.getElementById('settings-btn');
+const settingsPanel = document.getElementById('settings');
+const closeSettings = document.getElementById('close-settings');
+const workSlider = document.getElementById('work-slider');
+const breakSlider = document.getElementById('break-slider');
+const workLabel = document.getElementById('work-label');
+const breakLabel = document.getElementById('break-label');
+const strictToggle = document.getElementById('strict-toggle');
+const strictKnob = document.getElementById('strict-knob');
+const cycleCount = document.getElementById('cycle-count');
+const resetBtn = document.getElementById('reset-btn');
+const quoteEl = document.getElementById('quote');
+const stretchContainer = document.getElementById('stretch-container');
+
+const QUOTES = [
+  { text: "Almost everything will work again if you unplug it for a few minutes, including you.", author: "Anne Lamott" },
+  { text: "The time to relax is when you don't have time for it.", author: "Sydney J. Harris" },
+  { text: "Rest is not idleness, and to lie sometimes on the grass under trees on a summer's day is by no means a waste of time.", author: "John Lubbock" },
+  { text: "In the midst of movement and chaos, keep stillness inside of you.", author: "Deepak Chopra" },
+  { text: "Take a deep breath. It's just a bad day, not a bad life.", author: "Unknown" },
+  { text: "Your mind will answer most questions if you learn to relax and wait for the answer.", author: "William S. Burroughs" },
+];
+
+let state = {
+  remaining: 0,
+  is_working: true,
+  is_running: false,
+  is_paused: false,
+  strict_mode: false,
+  cycles_completed: 0,
+  work_duration: 1500,
+  break_duration: 300,
+};
+
+let strictEnabled = false;
+
+function formatTime(secs) {
+  const m = Math.floor(secs / 60);
+  const s = secs % 60;
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+function updateTimerDisplay() {
+  timerEl.textContent = formatTime(state.remaining);
+  phaseLabel.textContent = state.is_working ? 'Focus Time' : 'Break Time';
+  phaseLabel.className = `text-sm font-medium tracking-[0.2em] uppercase mb-3 fade-in ${state.is_working ? 'text-sage/60' : 'text-peach/60'}`;
+  cycleCount.textContent = state.cycles_completed;
+}
+
+function showOverlay() {
+  overlay.classList.remove('hidden');
+  refreshQuote();
+}
+
+function hideOverlay() {
+  overlay.classList.add('hidden');
+}
+
+function refreshQuote() {
+  const q = QUOTES[Math.floor(Math.random() * QUOTES.length)];
+  quoteEl.innerHTML = `
+    <p class="text-white/40 text-sm italic max-w-md leading-relaxed">"${q.text}"</p>
+    <p class="text-white/20 text-xs mt-2">— ${q.author}</p>
+  `;
+  quoteEl.style.animation = 'none';
+  quoteEl.offsetHeight;
+  quoteEl.style.animation = 'fadeIn 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+}
+
+function toggleStrict() {
+  strictEnabled = !strictEnabled;
+  strictKnob.style.left = strictEnabled ? '20px' : '2px';
+  strictToggle.style.background = strictEnabled ? 'rgba(255,179,153,0.3)' : 'rgba(255,255,255,0.1)';
+  invoke('update_settings', { workDuration: state.work_duration / 60, breakDuration: state.break_duration / 60, strictMode: strictEnabled });
+  if (strictEnabled) skipBtn.style.display = 'none';
+  else skipBtn.style.display = '';
+}
+
+// ── Event Listeners ─────────────────────────────────────────────
+
+listen('show-overlay', () => { showOverlay(); });
+listen('hide-overlay', () => { hideOverlay(); });
+listen('timer-tick', (event) => {
+  state.remaining = event.payload;
+  updateTimerDisplay();
+});
+listen('idle-paused', () => {
+  state.is_paused = true;
+  phaseLabel.textContent = 'Paused (Idle)';
+  phaseLabel.className = 'text-white/40 text-sm font-medium tracking-[0.2em] uppercase mb-3';
+});
+listen('force-break', () => {
+  showOverlay();
+});
+
+skipBtn.addEventListener('click', async () => {
+  try {
+    await invoke('skip_break');
+    hideOverlay();
+  } catch (e) {
+    // strict mode
+  }
+});
+
+settingsBtn.addEventListener('click', () => {
+  settingsPanel.classList.add('open');
+});
+
+closeSettings.addEventListener('click', () => {
+  settingsPanel.classList.remove('open');
+});
+
+workSlider.addEventListener('input', () => {
+  const val = parseInt(workSlider.value);
+  workLabel.textContent = `${val} min`;
+  state.work_duration = val * 60;
+  invoke('update_settings', { workDuration: val, breakDuration: state.break_duration / 60, strictMode: strictEnabled });
+});
+
+breakSlider.addEventListener('input', () => {
+  const val = parseInt(breakSlider.value);
+  breakLabel.textContent = `${val} min`;
+  state.break_duration = val * 60;
+  invoke('update_settings', { workDuration: state.work_duration / 60, breakDuration: val, strictMode: strictEnabled });
+});
+
+strictToggle.addEventListener('click', toggleStrict);
+
+resetBtn.addEventListener('click', async () => {
+  await invoke('reset_timer');
+  await refreshState();
+});
+
+async function refreshState() {
+  try {
+    state = await invoke('get_state');
+    updateTimerDisplay();
+  } catch (e) {}
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    if (settingsPanel.classList.contains('open')) {
+      settingsPanel.classList.remove('open');
+      return;
+    }
+    if (!overlay.classList.contains('hidden') && !strictEnabled) {
+      skipBtn.click();
+    }
+  }
+  if (e.key === 's' || e.key === 'S') {
+    settingsPanel.classList.toggle('open');
+  }
+});
+
+// ── Init ────────────────────────────────────────────────────────
+refreshState();
+setInterval(refreshState, 2000);
+</script>
+</body>
+</html>
