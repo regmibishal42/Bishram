@@ -55,6 +55,12 @@ struct TimerSnapshot {
     break_duration: u64,
 }
 
+fn fmt_time(secs: u64) -> String {
+    let m = secs / 60;
+    let s = secs % 60;
+    format!("{:02}:{:02}", m, s)
+}
+
 // ── Idle Detection ──────────────────────────────────────────────────────────
 
 #[cfg(target_os = "macos")]
@@ -226,8 +232,8 @@ fn update_settings(
     strict_mode: bool,
 ) -> Result<(), String> {
     let mut s = state.lock().map_err(|e| e.to_string())?;
-    s.work_duration = work_duration.min(3600).max(60);
-    s.break_duration = break_duration.min(3600).max(10);
+    s.work_duration = (work_duration * 60).min(7200).max(60);
+    s.break_duration = (break_duration * 60).min(3600).max(10);
     s.strict_mode = strict_mode;
     Ok(())
 }
@@ -314,12 +320,30 @@ async fn timer_loop(app: tauri::AppHandle) {
                 TimerAction::BreakComplete
             }
         };
+        if let Some(tray) = app.tray_by_id("main") {
+            let state = app.state::<Mutex<TimerState>>();
+            let s = state.lock().unwrap();
+            let tip = if s.is_paused {
+                "⏸ Paused".to_string()
+            } else if !s.is_running {
+                "Bishram — idle".to_string()
+            } else if s.is_working {
+                format!("Focus {}", fmt_time(s.remaining))
+            } else {
+                format!("Break {}", fmt_time(s.remaining))
+            };
+            let _ = tray.set_tooltip(Some(&tip));
+        }
         match action {
             TimerAction::WorkComplete => {
                 send_notification("Bishram", "Focus session complete — time for a mindful break.");
                 create_overlay(&app);
-                let _ = app.emit("show-overlay", true);
-                let _ = app.emit("timer-tick", 0);
+                let app2 = app.clone();
+                tauri::async_runtime::spawn(async move {
+                    tokio::time::sleep(Duration::from_millis(600)).await;
+                    let _ = app2.emit("show-overlay", true);
+                    let _ = app2.emit("timer-tick", 0);
+                });
             }
             TimerAction::BreakComplete => {
                 send_notification("Bishram", "Break over — let's return to focus.");

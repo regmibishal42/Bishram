@@ -467,6 +467,9 @@ async function refreshState() {
   try {
     state = await invoke('get_state');
     updateTimerDisplay();
+    if (!state.is_working && state.is_running && !state.is_paused) {
+      showOverlay();
+    }
   } catch (e) {}
 }
 
